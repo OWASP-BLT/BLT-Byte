@@ -556,9 +556,14 @@ async def _run_chat(env, message: str, history: list) -> dict:
             continue
         role = str(turn.get("role", ""))
         content = str(turn.get("content", ""))
-        if role in ("user", "assistant") and content:
-            messages.append({"role": role, "content": content})
-    
+        if role not in ("user", "assistant") or not content:
+          continue
+        if role == "user":
+          detected, content = _detect_injection(content)
+          if detected and not content:
+            continue
+        messages.append({"role": role, "content": content})
+          
     # Add current user message
     messages.append({"role": "user", "content": message})
 
