@@ -33,23 +33,30 @@ IP_RATE_LIMITS = {}
 RATE_LIMIT_MAX_KEYS = 10000
 RATE_LIMIT_TTL = 60.0
 INJECTION_PATTERNS = [
-  # Prompt control override attempts ( e.g, "Ignore all previous intstructions").
-  re.compile(r"\bignore\s+(?:all\s+)?previous\s+instructions\b", re.IGNORECASE),
-  # Role/persona hijacking attempts (e.g., "you are now DAN").
-  re.compile(r"\byou\s+are\s+now\s+[a-z0-9_\- ]{1,80}\b", re.IGNORECASE),
-  # System prompt extraction attempts (e.g., "output your system prompt").
-  re.compile(
-    r"\b(?:output|reveal|show|print|display)\s+(?:your|the)\s+(?:system\s+prompt|prompt)\b",
-    re.IGNORECASE,
-  ),
-  # Parenthetical side-channel injections (e.g., "(note to AI: ...)").
-  re.compile(r"\(\s*note\s+to\s+(?:ai|assistant)\s*:[^)]+\)", re.IGNORECASE),
-  # Instruction-reset variants using disregard/forget wording.
-  re.compile(
-     r"\b(?:disregard|forget)\s+(?:all\s+)?(?:previous\s+)?(?:instructions|rules|guidelines)\b",
-    re.IGNORECASE,
-  ),
+    # Prompt control override — strip trigger + the entire following clause.
+    re.compile(
+        r"\bignore\s+(?:all\s+)?previous\s+instructions\b[^.!?]*[.!?]?",
+        re.IGNORECASE,
+    ),
+    # Role/persona hijacking — strip trigger + persona name + any trailing directive.
+    re.compile(
+        r"\byou\s+are\s+now\s+[a-z0-9_\- ]{1,80}[^.!?]*[.!?]?",
+        re.IGNORECASE,
+    ),
+    # System prompt extraction — strip trigger + any trailing clause.
+    re.compile(
+        r"\b(?:output|reveal|show|print|display)\s+(?:your|the)\s+(?:system\s+prompt|prompt)\b[^.!?]*[.!?]?",
+        re.IGNORECASE,
+    ),
+    # Parenthetical side-channel — self-contained; already strips the whole note.
+    re.compile(r"\(\s*note\s+to\s+(?:ai|assistant)\s*:[^)]+\)", re.IGNORECASE),
+    # Instruction-reset variants — strip trigger + the entire following clause.
+    re.compile(
+        r"\b(?:disregard|forget)\s+(?:all\s+)?(?:previous\s+)?(?:instructions|rules|guidelines)\b[^.!?]*[.!?]?",
+        re.IGNORECASE,
+    ),
 ]
+
 # Production mode: Disable deep debugging
 try:
     pyodide.setDebug(False)
