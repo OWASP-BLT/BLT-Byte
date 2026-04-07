@@ -416,25 +416,24 @@ async def handle_mcp(request, env) -> Response:
 # Internal helpers used by both direct API and MCP
 # ---------------------------------------------------------------------------
 def _detect_injection(text: str) -> tuple[bool, str]:
-  
-  """Defense-in-depth: strip high-confidence prompt-injection fragments while preserving legitimate surrounding user intent."""
-  cleaned = text or ""
-  detected = False
+    """Defense-in-depth: strip high-confidence prompt-injection fragments while preserving legitimate surrounding user intent."""
+    cleaned = text or ""
+    detected = False
 
-for pattern in INJECTION_PATTERNS:
-    cleaned, match_count = pattern.subn(" ", cleaned)
-    if match_count:
-       detected = True
+    for pattern in INJECTION_PATTERNS:
+        cleaned, match_count = pattern.subn(" ", cleaned)
+        if match_count:
+            detected = True
 
-cleaned = re.sub(r"\s{2,}"," ", cleaned).strip()
+    cleaned = re.sub(r"\s{2,}", " ", cleaned).strip()
 
-# Return semantics:
-# - (False, original-ish text): no injection markers matched.
-# - (True, non-empty text): mixed message; safe text remains after stripping.
-# - (True, ""): pure injection payload; caller should short-circuit safely.
-if detected and (not cleaned or re.search(r"[a-z0-9]", cleaned, re.IGNORECASE) is None):
-  return True, ""
-  return detected, cleaned
+    # Return semantics:
+    # - (False, original-ish text): no injection markers matched.
+    # - (True, non-empty text): mixed message; safe text remains after stripping.
+    # - (True, ""): pure injection payload; caller should short-circuit safely.
+    if detected and (not cleaned or re.search(r"[a-z0-9]", cleaned, re.IGNORECASE) is None):
+        return True, ""
+    return detected, cleaned
 
 def _sanitize_ai_output(text: str) -> str | None:
     """Strip internal reasoning wrappers/preambles from model output."""
