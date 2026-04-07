@@ -33,26 +33,27 @@ IP_RATE_LIMITS = {}
 RATE_LIMIT_MAX_KEYS = 10000
 RATE_LIMIT_TTL = 60.0
 INJECTION_PATTERNS = [
-    # Prompt control override — strip trigger + the entire following clause.
+    # Pattern 1 — strip trigger phrase only
     re.compile(
-        r"\bignore\s+(?:all\s+)?previous\s+instructions\b[^.!?]*[.!?]?",
+        r"\bignore\s+(?:all\s+)?previous\s+instructions\b",
         re.IGNORECASE,
     ),
-    # Role/persona hijacking — strip trigger + persona name + any trailing directive.
+    # Pattern 2 — strip trigger + persona name; no trailing-clause consumption
     re.compile(
-        r"\byou\s+are\s+now\s+[a-z0-9_\- ]{1,80}[^.!?]*[.!?]?",
+        r"\byou\s+are\s+now\s+[a-z0-9_\- ]{1,80}",
         re.IGNORECASE,
     ),
-    # System prompt extraction — strip trigger + any trailing clause.
+    # Pattern 3 — strip extraction phrase only (no trailing chars consumed,
+    #              so the enclosing ")" is never eaten before Pattern 4 runs)
     re.compile(
-        r"\b(?:output|reveal|show|print|display)\s+(?:your|the)\s+(?:system\s+prompt|prompt)\b[^.!?]*[.!?]?",
+        r"\b(?:output|reveal|show|print|display)\s+(?:your|the)\s+(?:system\s+prompt|prompt)\b",
         re.IGNORECASE,
     ),
-    # Parenthetical side-channel — self-contained; already strips the whole note.
+    # Pattern 4 — unchanged; self-contained parenthetical already correct
     re.compile(r"\(\s*note\s+to\s+(?:ai|assistant)\s*:[^)]+\)", re.IGNORECASE),
-    # Instruction-reset variants — strip trigger + the entire following clause.
+    # Pattern 5 — strip trigger phrase only
     re.compile(
-        r"\b(?:disregard|forget)\s+(?:all\s+)?(?:previous\s+)?(?:instructions|rules|guidelines)\b[^.!?]*[.!?]?",
+        r"\b(?:disregard|forget)\s+(?:all\s+)?(?:previous\s+)?(?:instructions|rules|guidelines)\b",
         re.IGNORECASE,
     ),
 ]
